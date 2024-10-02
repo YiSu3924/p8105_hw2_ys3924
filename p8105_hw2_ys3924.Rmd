@@ -7,11 +7,12 @@ output: github_document
 
 ```{r setup, message=FALSE}
 library(tidyverse)
+library(readxl)
 ```
 
 # Problem 1
 
-## Read in NYC Transit data and clean the data
+## Read in and clean NYC Transit data
 
 ```{r, message=FALSE, warning=FALSE}
 NYC_transit = 
@@ -58,4 +59,21 @@ proportion_no_vending = num_no_vending / nrow(NYC_transit)
 ```
 
 The proportion of station entrances / exits without vending allow entrance is `r proportion_no_vending`.
+
+
+# Problem 2
+
+## Read in and clean Mr.Trash Wheel data
+
+```{r}
+mr_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", na = c("NA", ".", ""), skip = 1) |>
+  janitor::clean_names() |>
+  select(dumpster:homes_powered) |>
+  mutate(sports_balls = as.integer(round(sports_balls, 0)),
+         trash_wheel_name = "Mr. Trash Wheel",
+         year = as.numeric(year)) |>
+  filter(!is.na(dumpster)) |>
+  relocate(trash_wheel_name, dumpster)
+```
+
 
