@@ -1,0 +1,11 @@
+---
+title: "p8105_hw2_ys3924"
+author: "YISU"
+date: "2024-10-02"
+output: github_document
+---
+
+```{r setup, message=FALSE}
+library(tidyverse)
+```
+
