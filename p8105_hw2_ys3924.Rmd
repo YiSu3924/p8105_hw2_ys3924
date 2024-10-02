@@ -27,5 +27,35 @@ In my data cleaning process, I first used janitor::clean_names() function to con
 
 There are 1868 rows and 19 columns for this resulting dataset. 
 
+## Count distinct stations
 
+```{r}
+num_distinct_stations = NYC_transit |>
+  distinct(station_name, line) |>
+  nrow()
+```
+
+There are `r num_distinct_stations` distinct stations.
+
+## Count ADA stations 
+
+```{r}
+num_ada = NYC_transit |>
+  filter(ada == TRUE) |>
+  distinct(station_name, line) |>
+  nrow()
+```
+
+There are `r num_ada` ADA compliant stations.
+
+## Calculate proportion of station entrances / exits without vending allow entrance
+
+```{r}
+num_no_vending = NYC_transit |>
+  filter(vending == "NO") |>
+  nrow()
+proportion_no_vending = num_no_vending / nrow(NYC_transit)
+```
+
+The proportion of station entrances / exits without vending allow entrance is `r proportion_no_vending`.
 
