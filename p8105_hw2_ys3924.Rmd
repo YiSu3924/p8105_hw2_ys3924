@@ -132,7 +132,31 @@ bakes = read_csv("./data/gbb_datasets/bakes.csv") |>
   janitor::clean_names()
 results = read_csv("./data/gbb_datasets/results.csv", skip = 1) |>
   janitor::clean_names() |>
-  janitor::row_to_names(row_number = 1)
+  janitor::row_to_names(row_number = 1) |>
+  mutate(series = as.numeric(series),
+         episode = as.numeric(episode))
 ```
+In my data cleaning process, I first used janitor::clean_names() function to convert all column names to lowercase. For the bakers dataset, I renamed the baker_names column to baker and split the full name, retaining only the first name to ensure consistency with the other datasets. For the results dataset, I skipped the first row during the import process since it contains NA values in all columns. I then set the actual row with column names as the proper column headers. Finally, I changed the series and episode column in results dataset to numeric to keep consistency.
+
+
+
+## Check for completeness and correctness across datasets 
+```{r}
+anti_join(bakers, bakes)
+anti_join(bakes, bakers)
+anti_join(bakers, results)
+```
+
+By looking at above anti_join() results, the baker "Jo" from series 2 is not matched in results dataset. In bakes dataset, their name appears with quotes, which should be fixed. Also, bakes dataset lacks data from series 9 and 10, so bakers and results from those series are missing.
+
+```{r}
+bakes <- bakes |>
+  mutate(baker = ifelse(baker == "\"Jo\"", "Jo", baker))
+```
+In order to solve the problem, I replaced "Jo" with Jo in the bakes dataset.
+
+
+
+
 
 
