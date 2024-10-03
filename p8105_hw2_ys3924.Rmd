@@ -16,7 +16,8 @@ library(readxl)
 
 ```{r, message=FALSE, warning=FALSE}
 NYC_transit = 
-  read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") |>
+  read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv", 
+           col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) |>
   janitor::clean_names() |>
   select(line:entry, vending, ada) |>
   mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
@@ -24,7 +25,7 @@ NYC_transit =
 
 The NYC Transit dataset contains subway line, station name, station latitude and longitude, routes served, entry, vending, entrance type, and ADA compliance.
 
-In my data cleaning process, I first used janitor::clean_names() function to convert all column names to lowercase. Then I selected the key factors needed for this analysis. Finally, I transformed the entry variable from a "YES"/"NO" character format to a logical TRUE/FALSE. 
+In my data cleaning process, I first used janitor::clean_names() function to convert all column names to lowercase. Then I selected the key factors needed for this analysis. Finally, I transformed the entry variable from a "YES"/"NO" character format to a logical TRUE/FALSE. I also changed the column types for routes when importing the dataset.
 
 There are 1868 rows and 19 columns for this resulting dataset. 
 
@@ -54,19 +55,51 @@ There are `r num_ada` ADA compliant stations.
 ```{r}
 num_no_vending = NYC_transit |>
   filter(vending == "NO") |>
-  nrow()
-proportion_no_vending = num_no_vending / nrow(NYC_transit)
+  pull(entry) |> 
+  mean()
 ```
 
-The proportion of station entrances / exits without vending allow entrance is `r proportion_no_vending`.
+The proportion of station entrances / exits without vending allow entrance is `r num_no_vending`.
+
+```{r}
+num_A_train = NYC_transit |> 
+  pivot_longer(
+    cols = starts_with("route"),
+    names_to = "route_name",
+    values_to = "route"
+  ) |> 
+  filter(route == "A") |> 
+  select(station_name, line) |> 
+  distinct() |>
+  nrow()
+```
+
+I used pivot_longer() function to change the format. There are `r num_A_train` distinct stations serve the A train.
+
+```{r}
+num_A_train_ADA = NYC_transit |> 
+  pivot_longer(
+    cols = starts_with("route"),
+    names_to = "route_name",
+    values_to = "route") |> 
+  filter(route == "A", ada == TRUE) |> 
+  select(station_name, line) |> 
+  distinct() |>
+  nrow()
+```
+
+Of the stations that serve the A train, `r num_A_train_ADA` of them are ADA compliant.
 
 
 # Problem 2
 
 ## Read in and clean Mr.Trash Wheel data
 
-```{r}
-mr_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel", na = c("NA", ".", ""), skip = 1) |>
+```{r, message=FALSE}
+mr_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+                            sheet = "Mr. Trash Wheel",
+                            na = c("NA", ".", ""), 
+                            skip = 1) |>
   janitor::clean_names() |>
   select(dumpster:homes_powered) |>
   mutate(sports_balls = as.integer(round(sports_balls, 0)),
@@ -79,7 +112,10 @@ mr_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", shee
 ## Read in and clean Professor Trash Wheel data
 
 ```{r}
-professor_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", na = c("NA", ".", ""), skip = 1) |>
+professor_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+                                   sheet = "Professor Trash Wheel", 
+                                   na = c("NA", ".", ""), 
+                                   skip = 1) |>
   janitor::clean_names() |>
   mutate(trash_wheel_name = "Professor Trash Wheel") |>
   filter(!is.na(dumpster)) |>
@@ -90,7 +126,10 @@ professor_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx
 ## Read in and clean Gwynnda Trash Wheel data
 
 ```{r}
-gwynnda_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", na = c("NA", ".", ""), skip = 1) |>
+gwynnda_trash_wheel = read_excel("data/202409 Trash Wheel Collection Data.xlsx", 
+                                 sheet = "Gwynnda Trash Wheel", 
+                                 na = c("NA", ".", ""), 
+                                 skip = 1) |>
   janitor::clean_names() |>
   mutate(trash_wheel_name = "Gwynnda Trash Wheel") |>
   filter(!is.na(dumpster)) |>
@@ -159,8 +198,8 @@ In order to solve the problem, I replaced "Jo" with Jo in the bakes dataset.
 ## Merge the datasets
 
 ```{r}
-gbb_combined = left_join(bakers, results) |>
-  left_join(bakes) |>
+gbb_combined = left_join(bakers, results, by = c("baker", "series")) |>
+  left_join(bakes, by = c("baker", "series", "episode")) |>
   relocate(baker, last_name, series, episode) |>
   arrange(series)
 write_csv(gbb_combined, "./data/gbb_datasets/gbb_combined.csv")
