@@ -203,10 +203,12 @@ gbb_combined = left_join(bakers, results, by = c("baker", "series")) |>
   relocate(baker, last_name, series, episode) |>
   arrange(series)
 write_csv(gbb_combined, "./data/gbb_datasets/gbb_combined.csv")
+num_gbb_row = nrow(gbb_combined)
+num_gbb_col = ncol(gbb_combined)
 ```
 
 
-In the combined dataset, I arranged the columns in the order of first name, last name, series, and episode. I also sorted the series to improve readability. The final dataset includes 1129 observations and 11 variables, providing details on bakers' age, occupation, hometown, as well as their bakes and results.
+In the combined dataset, I arranged the columns in the order of first name, last name, series, and episode. I also sorted the series to improve readability. The final dataset includes `r num_gbb_row` observations and `r num_gbb_col` variables, providing details on bakers' age, occupation, hometown, as well as their bakes and results.
 
 
 ## Create table for Star Baker or Winner
